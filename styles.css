@@ -1,0 +1,45 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    transition: background-color 1s ease;
+}
+
+body.green-bg {
+    background-color: #314432;
+}
+
+.image-container {
+    position: relative;
+    width: 0;
+    height: 0;
+}
+
+.overlay-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter: grayscale(100%);
+    transition: filter 1s ease;
+}
+
+.overlay-image.color {
+    filter: grayscale(0%);
+}
+
