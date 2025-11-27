@@ -1,17 +1,94 @@
 // created for cornerlight vol 4
 
-const bush = document.getElementById('bush');
-const myaurrReg = document.getElementById('myaurr-reg');
-const all = document.querySelectorAll('.overlay-image');
+const initBGM = (hiddenId, guyId) => {
+    const hidden = document.getElementById(hiddenId);
+    const guy = document.getElementById(guyId);
+    const pendingResume = new Set();
 
-let isDragging = false;
-let currentX, currentY, initialX, initialY;
-let xOffset = 0, yOffset = 0;
+    const initLoop = (audio) => {
+        audio.loop = true;
+        audio.preload = 'auto';
+    };
+
+    const resumeOnInteraction = (audio) => {
+        if (pendingResume.has(audio)) {
+            return;
+        }
+        pendingResume.add(audio);
+
+        const cleanup = () => {
+            document.removeEventListener('pointerdown', attemptPlay);
+            document.removeEventListener('keydown', attemptPlay);
+            pendingResume.delete(audio);
+        };
+        const attemptPlay = () => audio.play().then(cleanup).catch(() => {});
+
+        document.addEventListener('pointerdown', attemptPlay);
+        document.addEventListener('keydown', attemptPlay);
+    };
+
+    const play = (audio) => {
+        const playPromise = audio.play();
+        if (playPromise instanceof Promise) {
+            playPromise.catch(() => resumeOnInteraction(audio));
+        }
+    };
+
+    const pause = (audio) => {
+        audio.pause();
+    };
+
+    const hideMyaurrMusic = () => {
+        pause(guy);
+        hidden.currentTime = 0;
+        play(hidden);
+    };
+
+    const revealMyaurrMusic = () => {
+        pause(hidden);
+        guy.currentTime = 0;
+        play(guy);
+    };
+
+    const init = () => {
+        initLoop(hidden);
+        initLoop(guy);
+        hideMyaurrMusic();
+    };
+
+    return { init, hideMyaurrMusic, revealMyaurrMusic };
+};
+
+// activating world of color!
+const updateVis = (isIntersecting) => {
+    if (isIntersecting) {
+        myaurrReg.style.display = 'block';
+        all.forEach((img) => img.classList.remove('color'));
+        document.body.classList.remove('green-bg');
+    } else {
+        myaurrReg.style.display = 'none';
+        all.forEach((img) => img.classList.add('color'));
+        document.body.classList.add('green-bg');
+    }
+};
+
+// activating whimsy music!
+const updateAudio = (isIntersecting) => {
+    if (isIntersecting === bushIsIntersecting) {
+        return;
+    }
+
+    if (isIntersecting) {
+        audioController.hideMyaurrMusic();
+    } else {
+        audioController.revealMyaurrMusic();
+    }
+    bushIsIntersecting = isIntersecting;
+};
 
 const isBushIntersecting = () => {
     const bushRect = bush.getBoundingClientRect();
     const regRect = myaurrReg.getBoundingClientRect();
-    
     const isIntersecting = !(
         bushRect.right < regRect.left ||
         bushRect.left > regRect.right ||
@@ -19,15 +96,8 @@ const isBushIntersecting = () => {
         bushRect.top > regRect.bottom
     );
     
-    // status quo
-    if (isIntersecting) {
-        myaurrReg.style.display = 'block';
-    // world of color! not undo-able
-    } else {
-        myaurrReg.style.display = 'none';
-        all.forEach(img => img.classList.add('color'));
-        document.body.classList.add('green-bg');
-    }
+    updateVis(isIntersecting);
+    updateAudio(isIntersecting);
 };
 
 const dragStart = (e) => {
@@ -74,6 +144,18 @@ const setTranslate = (xPos, yPos, el) => {
     isBushIntersecting();
 };
 
+const bush = document.getElementById('bush');
+const myaurrReg = document.getElementById('myaurr-reg');
+const all = document.querySelectorAll('.overlay-image');
+const audioController = initBGM('audio-hidden', 'audio-guy');
+
+audioController.init();
+
+let isDragging = false;
+let currentX, currentY, initialX, initialY;
+let xOffset = 0, yOffset = 0;
+let bushIsIntersecting = true;
+
 bush.addEventListener('mousedown', dragStart);
 bush.addEventListener('touchstart', dragStart);
 
@@ -83,4 +165,4 @@ document.addEventListener('touchend', dragEnd);
 document.addEventListener('touchmove', drag);
 
 bush.style.cursor = 'grab';
-
+isBushIntersecting();
