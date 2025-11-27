@@ -1,10 +1,11 @@
 // created for cornerlight vol 4
 
-const initBGM = (hiddenId, guyId) => {
+const initBGM = (hiddenId, guyId, onMutedChange) => {
     const hidden = document.getElementById(hiddenId);
     const guy = document.getElementById(guyId);
     const pendingResume = new Set();
-
+    let isMuted = false;
+    
     const initLoop = (audio) => {
         audio.loop = true;
         audio.preload = 'auto';
@@ -15,11 +16,13 @@ const initBGM = (hiddenId, guyId) => {
             return;
         }
         pendingResume.add(audio);
+        setMutedState(true);
 
         const cleanup = () => {
             document.removeEventListener('pointerdown', attemptPlay);
             document.removeEventListener('keydown', attemptPlay);
             pendingResume.delete(audio);
+            setMutedState(false);
         };
         const attemptPlay = () => audio.play().then(cleanup).catch(() => {});
 
@@ -50,6 +53,15 @@ const initBGM = (hiddenId, guyId) => {
         play(guy);
     };
 
+    const setMutedState = (muted) => {
+        if (isMuted !== muted) {
+            isMuted = muted;
+            if (onMutedChange) {
+                onMutedChange(muted);
+            }
+        }
+    };
+
     const init = () => {
         initLoop(hidden);
         initLoop(guy);
@@ -61,12 +73,11 @@ const initBGM = (hiddenId, guyId) => {
 
 // activating world of color!
 const updateVis = (isIntersecting) => {
+    myaurrReg.classList.remove('is-hidden');
     if (isIntersecting) {
-        myaurrReg.style.display = 'block';
         all.forEach((img) => img.classList.remove('color'));
         document.body.classList.remove('green-bg');
     } else {
-        myaurrReg.style.display = 'none';
         all.forEach((img) => img.classList.add('color'));
         document.body.classList.add('green-bg');
     }
@@ -147,7 +158,11 @@ const setTranslate = (xPos, yPos, el) => {
 const bush = document.getElementById('bush');
 const myaurrReg = document.getElementById('myaurr-reg');
 const all = document.querySelectorAll('.overlay-image');
-const audioController = initBGM('audio-hidden', 'audio-guy');
+const audioStatus = document.getElementById('audio-status');
+
+const audioController = initBGM('audio-hidden', 'audio-guy', (muted) => {
+    audioStatus.classList.toggle('visible', muted);
+});
 
 audioController.init();
 
@@ -163,6 +178,5 @@ document.addEventListener('mouseup', dragEnd);
 document.addEventListener('mousemove', drag);
 document.addEventListener('touchend', dragEnd);
 document.addEventListener('touchmove', drag);
-
 bush.style.cursor = 'grab';
 isBushIntersecting();
