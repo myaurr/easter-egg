@@ -20,6 +20,7 @@ body.green-bg {
 
 .muted {
     position: fixed;
+    text-align: center;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
