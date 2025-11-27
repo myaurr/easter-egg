@@ -14,31 +14,40 @@ body {
     transition: background-color 1s ease;
 }
 
-.content-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 body.green-bg {
     background-color: #314432;
 }
 
-.images {
-    position: relative;
-    width: 90vw;
-    height: 90vh;
-    max-width: 100%;
-    max-height: 100%;
+.muted {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 100;
+    user-select: none;
 }
 
-.overlay-image {
+.muted.visible {
+    opacity: 1;
+}
+
+.images {
+    position: relative;
+    width: 0;
+    height: 0;
+}
+
+.overlay {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 90vw;
+    max-height: 90vh;
     width: auto;
     height: auto;
     user-select: none;
@@ -49,32 +58,12 @@ body.green-bg {
     transition: filter 1s ease, opacity 0.3s ease;
 }
 
-.overlay-image.color {
+.overlay.color {
     filter: grayscale(0%);
 }
 
-.overlay-image.is-hidden {
+.overlay.is-hidden {
     visibility: hidden;
     opacity: 0;
-}
-
-.audio-status {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 36px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    user-select: none;
-    z-index: 100;
-}
-
-.audio-status:hover {
-    cursor: pointer;
-}
-
-.audio-status.visible {
-    opacity: 1;
 }
 

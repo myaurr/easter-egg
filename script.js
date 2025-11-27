@@ -1,11 +1,11 @@
 // created for cornerlight vol 4
 
-const initBGM = (hiddenId, guyId, onMutedChange) => {
+const initBGM = (hiddenId, guyId, onAutoplayBlocked) => {
     const hidden = document.getElementById(hiddenId);
     const guy = document.getElementById(guyId);
     const pendingResume = new Set();
-    let isMuted = false;
-    
+    let showMutedEmoji = false;
+
     const initLoop = (audio) => {
         audio.loop = true;
         audio.preload = 'auto';
@@ -16,13 +16,19 @@ const initBGM = (hiddenId, guyId, onMutedChange) => {
             return;
         }
         pendingResume.add(audio);
-        setMutedState(true);
+
+        if (!showMutedEmoji && onAutoplayBlocked) {
+            onAutoplayBlocked(true);
+            showMutedEmoji = true;
+        }
 
         const cleanup = () => {
             document.removeEventListener('pointerdown', attemptPlay);
             document.removeEventListener('keydown', attemptPlay);
             pendingResume.delete(audio);
-            setMutedState(false);
+            if (onAutoplayBlocked) {
+                onAutoplayBlocked(false);
+            }
         };
         const attemptPlay = () => audio.play().then(cleanup).catch(() => {});
 
@@ -53,15 +59,6 @@ const initBGM = (hiddenId, guyId, onMutedChange) => {
         play(guy);
     };
 
-    const setMutedState = (muted) => {
-        if (isMuted !== muted) {
-            isMuted = muted;
-            if (onMutedChange) {
-                onMutedChange(muted);
-            }
-        }
-    };
-
     const init = () => {
         initLoop(hidden);
         initLoop(guy);
@@ -73,11 +70,12 @@ const initBGM = (hiddenId, guyId, onMutedChange) => {
 
 // activating world of color!
 const updateVis = (isIntersecting) => {
-    myaurrReg.classList.remove('is-hidden');
     if (isIntersecting) {
+        myaurrReg.classList.remove('is-hidden');
         all.forEach((img) => img.classList.remove('color'));
         document.body.classList.remove('green-bg');
     } else {
+        myaurrReg.classList.add('is-hidden');
         all.forEach((img) => img.classList.add('color'));
         document.body.classList.add('green-bg');
     }
@@ -157,11 +155,11 @@ const setTranslate = (xPos, yPos, el) => {
 
 const bush = document.getElementById('bush');
 const myaurrReg = document.getElementById('myaurr-reg');
-const all = document.querySelectorAll('.overlay-image');
-const audioStatus = document.getElementById('audio-status');
+const all = document.querySelectorAll('.overlay');
+const mutedIndicator = document.getElementById('muted');
 
-const audioController = initBGM('audio-hidden', 'audio-guy', (muted) => {
-    audioStatus.classList.toggle('visible', muted);
+const audioController = initBGM('audio-hidden', 'audio-guy', (isBlocked) => {
+    mutedIndicator.classList.toggle('visible', isBlocked);
 });
 
 audioController.init();
@@ -178,5 +176,6 @@ document.addEventListener('mouseup', dragEnd);
 document.addEventListener('mousemove', drag);
 document.addEventListener('touchend', dragEnd);
 document.addEventListener('touchmove', drag);
+
 bush.style.cursor = 'grab';
 isBushIntersecting();
