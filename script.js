@@ -5,7 +5,6 @@ const initBGM = (hiddenId, guyId, onAutoplayBlocked) => {
     const guy = document.getElementById(guyId);
     const pendingResume = new Set();
     let showMutedEmoji = false;
-    let hasPendingSwitch = null;
 
     const initLoop = (audio) => {
         audio.loop = true;
@@ -30,12 +29,6 @@ const initBGM = (hiddenId, guyId, onAutoplayBlocked) => {
             if (onAutoplayBlocked) {
                 onAutoplayBlocked(false);
             }
-            // Execute pending switch after unmuting
-            if (hasPendingSwitch) {
-                const pendingAction = hasPendingSwitch;
-                hasPendingSwitch = null;
-                pendingAction();
-            }
         };
         const attemptPlay = () => audio.play().then(cleanup).catch(() => {});
 
@@ -54,25 +47,13 @@ const initBGM = (hiddenId, guyId, onAutoplayBlocked) => {
         audio.pause();
     };
 
-    const isAudioBlocked = () => {
-        return pendingResume.size > 0;
-    };
-
     const hideMyaurrMusic = () => {
-        if (isAudioBlocked()) {
-            hasPendingSwitch = hideMyaurrMusic;
-            return;
-        }
         pause(guy);
         hidden.currentTime = 0;
         play(hidden);
     };
 
     const revealMyaurrMusic = () => {
-        if (isAudioBlocked()) {
-            hasPendingSwitch = revealMyaurrMusic;
-            return;
-        }
         pause(hidden);
         guy.currentTime = 0;
         play(guy);
@@ -177,16 +158,20 @@ const myaurrReg = document.getElementById('myaurr-reg');
 const all = document.querySelectorAll('.overlay');
 const mutedIndicator = document.getElementById('muted');
 
-const audioController = initBGM('audio-hidden', 'audio-guy', (isBlocked) => {
-    mutedIndicator.classList.toggle('visible', isBlocked);
-});
-
-audioController.init();
-
 let isDragging = false;
 let currentX, currentY, initialX, initialY;
 let xOffset = 0, yOffset = 0;
 let bushIsIntersecting = true;
+let isAudioBlocked = false;
+
+const audioController = initBGM('audio-hidden', 'audio-guy', (isBlocked) => {
+    mutedIndicator.classList.toggle('visible', isBlocked);
+    isAudioBlocked = isBlocked;
+    bush.style.pointerEvents = isBlocked ? 'none' : 'auto';
+    bush.style.cursor = isBlocked ? 'default' : 'grab';
+});
+
+audioController.init();
 
 bush.addEventListener('mousedown', dragStart);
 bush.addEventListener('touchstart', dragStart);
